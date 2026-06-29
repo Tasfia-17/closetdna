@@ -1,25 +1,15 @@
-import { SignJWT, jwtVerify } from 'jose'
+// Node.js runtime only — never import this from middleware.ts
+// Use lib/jwt.ts for edge-safe token operations
 import bcrypt from 'bcryptjs'
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? 'dev-secret-change-me')
-
-export async function hashPassword(plain: string) {
+export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, 12)
 }
 
-export async function comparePassword(plain: string, hash: string) {
+export async function comparePassword(plain: string, hash: string): Promise<boolean> {
   return bcrypt.compare(plain, hash)
 }
 
-export async function signToken(payload: Record<string, unknown>) {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(secret)
-}
-
-export async function verifyToken(token: string) {
-  const { payload } = await jwtVerify(token, secret)
-  return payload as { userId: string; email: string }
-}
+// Re-export from jwt.ts for convenience so existing API routes
+// can still do: import { signToken } from '@/lib/auth'
+export { signToken, verifyToken } from './jwt'

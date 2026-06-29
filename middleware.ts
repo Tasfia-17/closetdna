@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/jwt'
 
-const PUBLIC = ['/', '/auth/signin', '/auth/signup']
-const PUBLIC_PREFIXES = ['/api/auth', '/_next', '/favicon']
+const PUBLIC_PATHS = ['/', '/auth/signin', '/auth/signup']
+const PUBLIC_PREFIXES = ['/api/auth', '/_next', '/favicon', '/public']
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (
-    PUBLIC.includes(pathname) ||
+    PUBLIC_PATHS.includes(pathname) ||
     PUBLIC_PREFIXES.some(p => pathname.startsWith(p))
   ) {
     return NextResponse.next()
