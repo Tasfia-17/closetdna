@@ -1,6 +1,8 @@
-import sql from './db'
+import { getDb } from './db'
 
 export async function runMigrations() {
+  const sql = getDb()
+
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -14,31 +16,31 @@ export async function runMigrations() {
 
   await sql`
     CREATE TABLE IF NOT EXISTS garments (
-      id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      name         TEXT NOT NULL,
-      category     TEXT NOT NULL CHECK (category IN ('clothing','footwear','jewelry','bag','outerwear')),
-      subcategory  TEXT,
-      color        TEXT,
-      pattern      TEXT,
-      fabric       TEXT,
-      formality    TEXT CHECK (formality IN ('casual','smart-casual','formal')),
-      seasons      TEXT[],
-      image_url    TEXT,
+      id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name            TEXT NOT NULL,
+      category        TEXT NOT NULL CHECK (category IN ('clothing','footwear','jewelry','bag','outerwear')),
+      subcategory     TEXT,
+      color           TEXT,
+      pattern         TEXT,
+      fabric          TEXT,
+      formality       TEXT CHECK (formality IN ('casual','smart-casual','formal')),
+      seasons         TEXT[],
+      image_url       TEXT,
       purchase_price  NUMERIC(10,2),
       purchase_date   DATE,
-      brand        TEXT,
-      wear_count   INT DEFAULT 0,
-      last_worn    DATE,
-      cost_per_wear NUMERIC(10,2) GENERATED ALWAYS AS (
+      brand           TEXT,
+      wear_count      INT DEFAULT 0,
+      last_worn       DATE,
+      cost_per_wear   NUMERIC(10,2) GENERATED ALWAYS AS (
         CASE WHEN wear_count > 0 AND purchase_price IS NOT NULL
           THEN ROUND(purchase_price / wear_count, 2)
           ELSE NULL END
       ) STORED,
-      tags         TEXT[],
-      style_genome JSONB DEFAULT '{}',
-      notes        TEXT,
-      added_at     TIMESTAMPTZ DEFAULT now()
+      tags            TEXT[],
+      style_genome    JSONB DEFAULT '{}',
+      notes           TEXT,
+      added_at        TIMESTAMPTZ DEFAULT now()
     )
   `
 
@@ -137,12 +139,9 @@ export async function runMigrations() {
     )
   `
 
-  // Useful indices
-  await sql`CREATE INDEX IF NOT EXISTS idx_garments_user      ON garments(user_id)`
-  await sql`CREATE INDEX IF NOT EXISTS idx_outfits_user       ON outfits(user_id)`
-  await sql`CREATE INDEX IF NOT EXISTS idx_outfits_worn_at    ON outfits(worn_at DESC)`
-  await sql`CREATE INDEX IF NOT EXISTS idx_decisions_user     ON decisions(user_id)`
-  await sql`CREATE INDEX IF NOT EXISTS idx_packing_user       ON packing_trips(user_id)`
-
-  console.log('✅ All migrations complete')
+  await sql`CREATE INDEX IF NOT EXISTS idx_garments_user   ON garments(user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_outfits_user    ON outfits(user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_outfits_worn_at ON outfits(worn_at DESC)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_decisions_user  ON decisions(user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_packing_user    ON packing_trips(user_id)`
 }
