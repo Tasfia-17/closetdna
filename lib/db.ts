@@ -17,17 +17,16 @@ export function getDb(): NeonQueryFunction<false, false> {
   return _sql
 }
 
-// Convenience re-export so existing callers can do:
-//   import sql from '@/lib/db'
-//   await sql`SELECT 1`
-// This is a function, not a tagged template, but neon() returns a tagged template function.
-// We wrap it so the lazy check runs on first use.
-const sqlProxy = new Proxy(
-  // placeholder function that forwards to the lazy client
-  function (strings: TemplateStringsArray, ...values: unknown[]) {
-    return getDb()(strings, ...values)
-  } as NeonQueryFunction<false, false>,
-  {}
+// Tagged-template proxy — same interface as neon() directly.
+// Nothing executes until the first actual SQL call at request time.
+const sql: NeonQueryFunction<false, false> = new Proxy(
+  function placeholder() {} as unknown as NeonQueryFunction<false, false>,
+  {
+    apply(_target, _thisArg, args) {
+      const db = getDb()
+      return (db as unknown as (...a: unknown[]) => unknown)(...args)
+    },
+  }
 )
 
-export default sqlProxy
+export default sql
