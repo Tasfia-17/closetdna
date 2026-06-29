@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       id: g.id as string,
       name: g.name as string,
       category: g.category as string,
-      genome: (g.style_genome ?? {}) as Parameters<typeof getPackingSuggestions>[0]['garments'][0]['genome'],
+      genome: (g.style_genome ?? {}) as unknown as import('@/lib/ai').StyleGenome,
     }))
     const suggestion = await getPackingSuggestions({
       destination, weather: weather_desc ?? '', activities: activities ?? [],

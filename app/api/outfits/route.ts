@@ -48,9 +48,9 @@ export async function POST(req: NextRequest) {
       const formatted = garments.map((g: Record<string, unknown>) => ({
         id: g.id as string,
         name: g.name as string,
-        genome: (g.style_genome ?? {}) as Record<string, unknown>,
+        genome: (g.style_genome ?? {}) as unknown as import('@/lib/ai').StyleGenome,
       }))
-      const decision = await getOutfitDecision({ occasion, weather, garments: formatted as Parameters<typeof getOutfitDecision>[0]['garments'] })
+      const decision = await getOutfitDecision({ occasion, weather, garments: formatted })
 
       // Log the decision
       await sql`
